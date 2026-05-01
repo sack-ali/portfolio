@@ -17,36 +17,32 @@ export type TechItem = {
 
 const techStack: TechItem[] = [
   // AI/ML
-  { name: "PyTorch", category: "AI/ML", color: "#ee4c2c", x: 2, y: 1, z: 0 },
-  { name: "LangChain", category: "AI/ML", color: "#00b4d8", x: -2, y: 0.5, z: 1 },
-  { name: "FAISS", category: "AI/ML", color: "#00f5ff", x: 1.5, y: -1, z: -1 },
-  { name: "OpenAI", category: "AI/ML", color: "#74aa9c", x: -1, y: 1.5, z: 0.5 },
+  { name: "Python", category: "AI/ML", color: "#3b82f6", x: 2, y: 1, z: 0 },
+  { name: "PyTorch", category: "AI/ML", color: "#ee4c2c", x: -2, y: 0.5, z: 1 },
+  { name: "BERT", category: "AI/ML", color: "#00f5ff", x: 1.5, y: -1, z: -1 },
+  { name: "scikit-learn", category: "AI/ML", color: "#f89939", x: -1, y: 1.5, z: 0.5 },
   { name: "SHAP", category: "AI/ML", color: "#ff6b6b", x: 0.5, y: 2, z: -0.5 },
+  { name: "NetworkX", category: "AI/ML", color: "#74aa9c", x: -0.5, y: -1.5, z: 1 },
   // Frontend
   { name: "Next.js", category: "Frontend", color: "#e0f4ff", x: -2.5, y: -0.5, z: 0 },
   { name: "React", category: "Frontend", color: "#61dafb", x: 2.5, y: -0.5, z: 1 },
-  { name: "Framer", category: "Frontend", color: "#0055ff", x: 0, y: -2, z: 0.5 },
   { name: "TypeScript", category: "Frontend", color: "#3178c6", x: -1.5, y: -1.5, z: -1 },
   { name: "Tailwind", category: "Frontend", color: "#38bdf8", x: 1, y: -2.5, z: 0 },
-  // Backend
+  { name: "Framer", category: "Frontend", color: "#0055ff", x: 0, y: -2, z: 0.5 },
+  // Backend / Data
   { name: "FastAPI", category: "Backend", color: "#059669", x: -0.5, y: 0, z: 2 },
-  { name: "Go", category: "Backend", color: "#00add8", x: 0.5, y: 1, z: -2 },
-  { name: "Rust", category: "Backend", color: "#f74c00", x: -1.5, y: 0.5, z: -2 },
-  { name: "Redis", category: "Backend", color: "#dc382d", x: 1.5, y: 0, z: 2 },
-  // Data/DB
-  { name: "Neo4j", category: "Data", color: "#018bff", x: 0, y: -1, z: -2 },
-  { name: "PostgreSQL", category: "Data", color: "#336791", x: -2, y: -1.5, z: 1 },
+  { name: "Supabase", category: "Backend", color: "#3ecf8e", x: 1.5, y: 0, z: 2 },
+  { name: "PostgreSQL", category: "Backend", color: "#336791", x: -2, y: -1.5, z: 1 },
   // Security
-  { name: "AES-256", category: "Security", color: "#7b2fff", x: 2, y: 1.5, z: 1.5 },
-  { name: "WebRTC", category: "Security", color: "#4285f4", x: -1, y: -0.5, z: 2.5 },
+  { name: "Web Crypto API", category: "Security", color: "#7b2fff", x: 2, y: 1.5, z: 1.5 },
+  { name: "AES-256-GCM", category: "Security", color: "#00ff88", x: -1, y: -0.5, z: 2.5 },
 ];
 
-const categories = ["All", "AI/ML", "Frontend", "Backend", "Data", "Security"];
+const categories = ["All", "AI/ML", "Frontend", "Backend", "Security"];
 const categoryColors: Record<string, string> = {
   "AI/ML": "#00f5ff",
   Frontend: "#61dafb",
   Backend: "#059669",
-  Data: "#018bff",
   Security: "#7b2fff",
 };
 

@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useRef } from "react";
-import { motion, AnimatePresence, useScroll, useTransform } from "framer-motion";
-import { ChevronDown, GitBranch, Cpu, Shield, Database, ExternalLink } from "lucide-react";
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { ChevronDown, GitBranch, Cpu, Shield, ExternalLink } from "lucide-react";
 
 type Project = {
   id: string;
@@ -11,147 +11,137 @@ type Project = {
   subtitle: string;
   icon: typeof GitBranch;
   tags: string[];
-  problem: string;
-  failure: string;
-  fix: string;
+  context: string;
+  challenge: string;
+  approach: string;
   architecture: { label: string; desc: string }[];
   codeSnippet: string;
   ghostLabel: string;
-  link?: string;
+  link: string;
   color: string;
 };
 
 const projects: Project[] = [
   {
-    id: "graphrag",
+    id: "trumorgpt",
     num: "01",
-    title: "GraphRAG Knowledge Engine",
-    subtitle: "Retrieval-Augmented Generation over graph-structured corpora",
+    title: "TrumorGPT",
+    subtitle: "GraphRAG pipeline for health misinformation detection",
     icon: GitBranch,
-    tags: ["Python", "Neo4j", "LangChain", "OpenAI", "FastAPI"],
-    problem:
-      "Standard RAG systems lost relational context between entities — asking about drug interactions returned isolated facts, not connected chains of evidence.",
-    failure:
-      "First attempt used flat vector embeddings. Precision was 61%. The system hallucinated connections between unrelated entities at 23% rate.",
-    fix:
-      "Introduced a hybrid retrieval layer: sparse graph traversal (BFS to depth 3) + dense FAISS retrieval, fused via a learned cross-attention re-ranker. Precision jumped to 89%.",
+    tags: ["Python", "BERT", "distilgpt2", "Knowledge Graphs", "PageRank", "NLI"],
+    context:
+      "Health misinformation spreads relationally — a false claim gains credibility by linking to real entities. Standard NLP classifiers treat each claim in isolation and miss these chains. Built as a research project and presented at the Üsküdar University Student Research Congress, 2025.",
+    challenge:
+      "BERT fine-tuned on claim text alone plateaued at ~71% F1. It had no way to reason about the credibility of the entities referenced in a claim, or their relationships to established medical knowledge.",
+    approach:
+      "Built a knowledge graph from verified medical sources. Used PageRank to score entity credibility, then retrieved relevant subgraphs per claim. A Natural Language Inference (NLI) head then verified each claim against the retrieved evidence — combining structural graph reasoning with language model classification.",
     architecture: [
-      { label: "Ingestion", desc: "Entity extraction → Neo4j graph builder" },
-      { label: "Retrieval", desc: "BFS graph walk + FAISS dense search" },
-      { label: "Fusion", desc: "Cross-attention re-ranker (T5-small fine-tuned)" },
-      { label: "Generation", desc: "GPT-4o with structured citation grounding" },
+      { label: "Ingest", desc: "Build KG from verified medical corpora" },
+      { label: "Rank", desc: "PageRank entity credibility scores" },
+      { label: "Retrieve", desc: "Subgraph retrieval per claim entity" },
+      { label: "Verify", desc: "NLI head: claim vs. evidence" },
+      { label: "Generate", desc: "distilgpt2 explanation output" },
     ],
-    codeSnippet: `# Hybrid retrieval fusion
-graph_hits = neo4j.traverse(query_entity, depth=3)
-dense_hits = faiss_index.search(query_emb, k=20)
+    codeSnippet: `# PageRank entity credibility scoring
+G = build_knowledge_graph(verified_sources)
+credibility = nx.pagerank(G, alpha=0.85)
 
-fused = cross_attention_reranker(
-  graph_context=graph_hits,
-  dense_context=dense_hits,
-  query=query
+# Subgraph retrieval for claim entities
+entities = extract_entities(claim)  # BERT NER
+subgraph = G.subgraph(
+    nx.ego_graph(G, e, radius=2)
+    for e in entities
 )
-return fused[:TOP_K]`,
-    ghostLabel: "Graph → Vector → Re-rank → Generate",
+
+# NLI verification
+evidence = graph_to_text(subgraph)
+label = nli_model(premise=evidence, hypothesis=claim)`,
+    ghostLabel: "Claim → Entity Extract → KG Lookup → NLI → Label",
+    link: "https://github.com/sack-ali/TrumorGPT",
     color: "#00f5ff",
   },
   {
-    id: "cnn-xai",
+    id: "zk-secure",
     num: "02",
-    title: "CNN-XAI Medical Imaging",
-    subtitle: "Explainable AI for imbalanced medical dataset classification",
-    icon: Cpu,
-    tags: ["PyTorch", "SHAP", "GMM-SMOTE", "React", "FastAPI"],
-    problem:
-      "Medical dataset had 94:6 class imbalance. Standard SMOTE generated synthetic samples in overlapping decision boundaries, causing 31% false-positive rate on minority class.",
-    failure:
-      "Baseline ResNet-50 hit 96% accuracy but 0% recall on the minority class — a model that predicted majority class every time would have scored identically.",
-    fix:
-      "Implemented GMM-Density SMOTE: fitted Gaussian Mixture Models to minority class distribution, sampled only in high-density sub-manifolds. F1 on minority class improved from 0.04 → 0.78. Used SHAP + GradCAM for XAI overlays.",
-    architecture: [
-      { label: "Data", desc: "GMM-Density SMOTE oversampling" },
-      { label: "Model", desc: "ResNet-50 with focal loss (γ=2)" },
-      { label: "XAI", desc: "SHAP values + GradCAM heatmaps" },
-      { label: "UI", desc: "React dashboard with real-time explanation overlays" },
-    ],
-    codeSnippet: `# GMM-Density SMOTE
-gmm = GaussianMixture(n_components=8)
-gmm.fit(X_minority)
-
-# Sample only from high-density regions
-samples, _ = gmm.sample(n_synthetic)
-density = gmm.score_samples(samples)
-mask = density > density.mean() + 0.5 * density.std()
-X_synthetic = samples[mask]`,
-    ghostLabel: "GMM → Sample → Filter → Augment → Train",
-    color: "#7b2fff",
-  },
-  {
-    id: "secfile",
-    num: "03",
-    title: "Secure File Sharing System",
-    subtitle: "End-to-end encrypted P2P file transfer with zero-knowledge server",
+    title: "ZK-SecureStorage",
+    subtitle: "Zero-knowledge encrypted file sharing — graduation project",
     icon: Shield,
-    tags: ["Rust", "WebRTC", "AES-256-GCM", "Ed25519", "React"],
-    problem:
-      "Existing solutions either stored plaintext on servers or required both parties online simultaneously — neither acceptable for sensitive document transfer.",
-    failure:
-      "First protocol used RSA-2048 for key exchange. Under formal verification, found a padding oracle vulnerability in the PKCS#1 v1.5 implementation. Scrapped entirely.",
-    fix:
-      "Rebuilt with X25519 ECDH for key exchange + AES-256-GCM for payload encryption + Ed25519 for signing. Server operates in zero-knowledge mode — stores only encrypted blobs. Passed STRIDE threat model analysis.",
+    tags: ["Next.js", "React", "Web Crypto API", "Supabase", "TypeScript"],
+    context:
+      "Graduation project. Led frontend and UX. The goal: a file-sharing system where the server stores only ciphertext — it never sees plaintext, and key material never leaves the client.",
+    challenge:
+      "The first prototype stored encrypted files but managed keys server-side, which defeats zero-knowledge entirely. We also had to handle large file encryption without blocking the UI thread.",
+    approach:
+      "Moved all cryptography into the browser using the Web Crypto API. Keys are derived client-side with PBKDF2 from the user's passphrase. Files are encrypted with AES-256-GCM before upload. Supabase stores only the ciphertext blob. Used Web Workers to keep encryption off the main thread for files >10MB.",
     architecture: [
-      { label: "Key Exchange", desc: "X25519 ECDH ephemeral keypairs" },
-      { label: "Encryption", desc: "AES-256-GCM with per-message nonces" },
-      { label: "Signing", desc: "Ed25519 sender authentication" },
-      { label: "Transport", desc: "WebRTC DataChannel with ICE fallback" },
+      { label: "Key Derive", desc: "PBKDF2 from passphrase (client-only)" },
+      { label: "Encrypt", desc: "AES-256-GCM via Web Crypto API" },
+      { label: "Worker", desc: "Web Worker for non-blocking large files" },
+      { label: "Store", desc: "Supabase receives ciphertext only" },
+      { label: "Share", desc: "Encrypted link with embedded IV" },
     ],
-    codeSnippet: `// X25519 key exchange (Rust)
-let ephemeral = EphemeralSecret::random(&mut OsRng);
-let public = PublicKey::from(&ephemeral);
-
-// Send public key, receive peer's
-let shared = ephemeral.diffie_hellman(&peer_public);
-let key = hkdf_sha256(shared.as_bytes(), b"secfile-v1");
-
-// Encrypt with AES-256-GCM
-let cipher = Aes256Gcm::new_from_slice(&key)?;
-let nonce = Nonce::from_slice(&rand_nonce());
-let ciphertext = cipher.encrypt(nonce, payload.as_ref())?;`,
-    ghostLabel: "X25519 → HKDF → AES-GCM → Sign → Transfer",
+    codeSnippet: `// Client-side key derivation — key never leaves browser
+const keyMaterial = await crypto.subtle.importKey(
+  "raw",
+  new TextEncoder().encode(passphrase),
+  "PBKDF2",
+  false,
+  ["deriveKey"]
+);
+const key = await crypto.subtle.deriveKey(
+  { name: "PBKDF2", salt, iterations: 310_000, hash: "SHA-256" },
+  keyMaterial,
+  { name: "AES-GCM", length: 256 },
+  false,
+  ["encrypt", "decrypt"]
+);
+const ciphertext = await crypto.subtle.encrypt(
+  { name: "AES-GCM", iv },
+  key,
+  fileBuffer
+);`,
+    ghostLabel: "Passphrase → PBKDF2 → AES-GCM → Ciphertext → Supabase",
+    link: "https://github.com/sack-ali/ZK-SecureStorage",
     color: "#00ff88",
   },
   {
-    id: "distributed",
-    num: "04",
-    title: "Distributed Task Orchestrator",
-    subtitle: "Fault-tolerant job queue with priority scheduling across heterogeneous workers",
-    icon: Database,
-    tags: ["Go", "Redis Streams", "Docker", "gRPC", "Prometheus"],
-    problem:
-      "Monolithic job processor became a single point of failure — one bad ML job would freeze the entire queue for hours, blocking 200+ downstream tasks.",
-    failure:
-      "Naïve worker pool with Redis LPOP had a thundering herd problem: all workers would wake simultaneously on queue activity, causing Redis CPU spikes to 95%.",
-    fix:
-      "Redesigned with Redis Streams (XREADGROUP) for consumer group isolation. Added circuit breakers per worker, exponential backoff, and dead-letter queues. Reduced queue stalls from ~3/day to 0 in 6 weeks of production.",
+    id: "path",
+    num: "03",
+    title: "PATH",
+    subtitle: "Fairness-aware classification for imbalanced clinical data",
+    icon: Cpu,
+    tags: ["Python", "scikit-learn", "SMOTE", "ADASYN", "Fairness Metrics"],
+    context:
+      "Clinical datasets routinely have severe class imbalance — the minority class represents rare but critical outcomes. A model that ignores this will have near-zero recall on exactly the patients who most need to be flagged.",
+    challenge:
+      "Standard accuracy metrics are deeply misleading here. A classifier that always predicts the majority class scores 95%+ accuracy on a 95:5 split while being useless in practice. The secondary challenge was that some resampling methods introduced fairness violations across demographic subgroups.",
+    approach:
+      "Systematically evaluated SMOTE, ADASYN, borderline-SMOTE, and random undersampling across multiple clinical datasets. Measured not just F1 and recall, but equalized odds and demographic parity to surface fairness trade-offs. Results showed ADASYN with threshold-moving outperformed pure resampling on minority recall without introducing demographic disparity.",
     architecture: [
-      { label: "Queue", desc: "Redis Streams with consumer groups" },
-      { label: "Workers", desc: "Dockerized Go workers with circuit breakers" },
-      { label: "Scheduling", desc: "Priority queue with deadline-aware dispatch" },
-      { label: "Observability", desc: "Prometheus + Grafana real-time dashboards" },
+      { label: "Baseline", desc: "Majority-class dummy — exposes metric illusion" },
+      { label: "Resample", desc: "SMOTE / ADASYN / borderline variants" },
+      { label: "Train", desc: "Logistic regression + random forest + SVM" },
+      { label: "Evaluate", desc: "F1, recall, equalized odds, dem. parity" },
+      { label: "Select", desc: "ADASYN + threshold-moving — best fairness/recall" },
     ],
-    codeSnippet: `// Redis Streams consumer group
-entries, err := rdb.XReadGroup(ctx, &redis.XReadGroupArgs{
-  Group:    workerID,
-  Consumer: nodeID,
-  Streams:  []string{"jobs", ">"},
-  Count:    batchSize,
-  Block:    100 * time.Millisecond,
-}).Result()
+    codeSnippet: `from imblearn.over_sampling import ADASYN
+from sklearn.metrics import classification_report
+from fairlearn.metrics import equalized_odds_difference
 
-for _, entry := range entries {
-  go w.process(ctx, entry, circuitBreaker)
-}`,
-    ghostLabel: "Enqueue → Priority Sort → Circuit Break → Execute → ACK",
-    color: "#ff6b35",
+# Resample training data only (never touch test set)
+X_res, y_res = ADASYN(random_state=42).fit_resample(X_train, y_train)
+
+clf.fit(X_res, y_res)
+y_pred = clf.predict(X_test)
+
+print(classification_report(y_test, y_pred))
+eod = equalized_odds_difference(
+    y_test, y_pred, sensitive_features=X_test["subgroup"]
+)
+print(f"Equalized Odds Difference: {eod:.3f}")`,
+    ghostLabel: "Imbalanced Data → ADASYN → Train → Fairness Audit → Select",
+    link: "https://github.com/sack-ali/PATH",
+    color: "#7b2fff",
   },
 ];
 
@@ -167,7 +157,7 @@ function ArchitectureDiagram({ steps }: { steps: { label: string; desc: string }
             <p className="text-[11px] text-[var(--text-muted)] leading-tight">{step.desc}</p>
           </div>
           {i < steps.length - 1 && (
-            <div className="self-center text-[var(--cyan)] opacity-40 shrink-0 mt-1">→</div>
+            <div aria-hidden="true" className="self-center text-[var(--cyan)] opacity-40 shrink-0 mt-1">→</div>
           )}
         </div>
       ))}
@@ -185,16 +175,15 @@ function CodeBlock({ code, ghostLabel }: { code: string; ghostLabel: string }) {
       onMouseLeave={() => setShowGhost(false)}
     >
       <div className="flex items-center gap-2 px-4 py-2 border-b border-[var(--glass-border)]">
-        <div className="w-3 h-3 rounded-full bg-red-500/60" />
-        <div className="w-3 h-3 rounded-full bg-yellow-500/60" />
-        <div className="w-3 h-3 rounded-full bg-green-500/60" />
-        <span className="ml-2 font-mono text-xs text-[var(--text-muted)]">logic.py</span>
+        <div aria-hidden="true" className="w-3 h-3 rounded-full bg-red-500/60" />
+        <div aria-hidden="true" className="w-3 h-3 rounded-full bg-yellow-500/60" />
+        <div aria-hidden="true" className="w-3 h-3 rounded-full bg-green-500/60" />
+        <span className="ml-2 font-mono text-xs text-[var(--text-muted)]">snippet.py</span>
       </div>
       <pre className="p-4 font-mono text-xs text-[var(--text-primary)] overflow-x-auto leading-relaxed">
         <code>{code}</code>
       </pre>
 
-      {/* Logic Ghost overlay */}
       <AnimatePresence>
         {showGhost && (
           <motion.div
@@ -203,15 +192,14 @@ function CodeBlock({ code, ghostLabel }: { code: string; ghostLabel: string }) {
             exit={{ opacity: 0 }}
             className="absolute inset-0 flex items-center justify-center"
             style={{ background: "rgba(0,8,20,0.88)", backdropFilter: "blur(4px)" }}
+            aria-hidden="true"
           >
             <div className="text-center px-6">
               <div className="w-12 h-12 rounded-full border border-[var(--cyan)] flex items-center justify-center mx-auto mb-3"
                 style={{ boxShadow: "0 0 20px rgba(0,245,255,0.3)" }}>
                 <Cpu size={20} className="text-[var(--cyan)]" />
               </div>
-              <p className="font-mono text-xs text-[var(--cyan)] tracking-widest mb-2 uppercase">
-                Data Flow
-              </p>
+              <p className="font-mono text-xs text-[var(--cyan)] tracking-widest mb-2 uppercase">Data Flow</p>
               <p className="font-mono text-sm text-[var(--text-primary)]">{ghostLabel}</p>
             </div>
           </motion.div>
@@ -233,7 +221,6 @@ function ProjectCard({ project, index }: { project: Project; index: number }) {
       viewport={{ once: true, margin: "-100px" }}
       className="glass rounded-2xl overflow-hidden"
     >
-      {/* Header */}
       <button
         onClick={() => setExpanded(!expanded)}
         aria-expanded={expanded}
@@ -268,17 +255,27 @@ function ProjectCard({ project, index }: { project: Project; index: number }) {
           </h3>
           <p className="text-sm text-[var(--text-muted)] mt-1">{project.subtitle}</p>
         </div>
-        <motion.div
-          animate={{ rotate: expanded ? 180 : 0 }}
-          transition={{ duration: 0.3 }}
-          aria-hidden="true"
-          className="shrink-0 mt-1"
-        >
-          <ChevronDown size={20} className="text-[var(--text-muted)]" />
-        </motion.div>
+        <div className="flex items-center gap-3 shrink-0 mt-1">
+          <a
+            href={project.link}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label={`View ${project.title} on GitHub`}
+            onClick={(e) => e.stopPropagation()}
+            className="text-[var(--text-muted)] hover:text-[var(--cyan)] transition-colors"
+          >
+            <ExternalLink size={16} />
+          </a>
+          <motion.div
+            animate={{ rotate: expanded ? 180 : 0 }}
+            transition={{ duration: 0.3 }}
+            aria-hidden="true"
+          >
+            <ChevronDown size={20} className="text-[var(--text-muted)]" />
+          </motion.div>
+        </div>
       </button>
 
-      {/* Expanded content */}
       <AnimatePresence initial={false}>
         {expanded && (
           <motion.div
@@ -292,33 +289,23 @@ function ProjectCard({ project, index }: { project: Project; index: number }) {
             className="overflow-hidden"
           >
             <div className="px-8 pb-8 grid md:grid-cols-2 gap-8 border-t border-[var(--glass-border)]">
-              {/* Left: Narrative */}
               <div className="pt-6">
                 <div className="mb-6">
-                  <p className="font-mono text-[10px] tracking-widest text-[var(--cyan)] uppercase mb-2">
-                    The Problem
-                  </p>
-                  <p className="text-sm text-[var(--text-muted)] leading-relaxed">{project.problem}</p>
+                  <p className="font-mono text-[10px] tracking-widest text-[var(--cyan)] uppercase mb-2">Context</p>
+                  <p className="text-sm text-[var(--text-muted)] leading-relaxed">{project.context}</p>
                 </div>
                 <div className="mb-6">
-                  <p className="font-mono text-[10px] tracking-widest text-red-400 uppercase mb-2">
-                    The Failure
-                  </p>
-                  <p className="text-sm text-[var(--text-muted)] leading-relaxed">{project.failure}</p>
+                  <p className="font-mono text-[10px] tracking-widest text-red-400 uppercase mb-2">The Challenge</p>
+                  <p className="text-sm text-[var(--text-muted)] leading-relaxed">{project.challenge}</p>
                 </div>
                 <div>
-                  <p className="font-mono text-[10px] tracking-widest text-green-400 uppercase mb-2">
-                    The Fix
-                  </p>
-                  <p className="text-sm text-[var(--text-muted)] leading-relaxed">{project.fix}</p>
+                  <p className="font-mono text-[10px] tracking-widest text-green-400 uppercase mb-2">The Approach</p>
+                  <p className="text-sm text-[var(--text-muted)] leading-relaxed">{project.approach}</p>
                 </div>
               </div>
 
-              {/* Right: Architecture + Code */}
               <div className="pt-6">
-                <p className="font-mono text-[10px] tracking-widest text-[var(--cyan)] uppercase mb-2">
-                  Architecture Flow
-                </p>
+                <p className="font-mono text-[10px] tracking-widest text-[var(--cyan)] uppercase mb-2">Architecture Flow</p>
                 <ArchitectureDiagram steps={project.architecture} />
                 <p className="font-mono text-[10px] tracking-widest text-[var(--cyan)] uppercase mt-6 mb-2">
                   Core Logic — hover for data flow
@@ -345,14 +332,14 @@ export default function ProjectArchaeology() {
           className="mb-16"
         >
           <p className="font-mono text-xs tracking-[0.4em] text-[var(--cyan)] mb-4 uppercase">
-            — 03. Project Archaeology
+            — 03. Projects
           </p>
           <h2 className="text-4xl md:text-5xl font-bold text-[var(--text-primary)]">
-            How I Failed.{" "}
-            <span className="gradient-text">How I Fixed It.</span>
+            Real Work.{" "}
+            <span className="gradient-text">Real Trade-offs.</span>
           </h2>
           <p className="mt-4 text-[var(--text-muted)] max-w-xl text-lg">
-            Each project is a case study in real engineering decisions — including the ones that went wrong first.
+            Three projects I can talk through end-to-end — the context, the problems, and the decisions behind each one.
           </p>
         </motion.div>
 
